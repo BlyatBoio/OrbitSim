@@ -6,31 +6,84 @@ let cameraX = 0;
 let cameraY = 0;
 let cameraScale = 1;
 let cameraMoveSped = 1;
+let mouseScrolled = 0;
 
-function setup() {
+// global vars
+let trailLength;
+let planetScale = 0;
+let moveMode = "FocusBigGuy";
+// "FocusBigGuy" = center on the most massive object
+// "SelfMove" = the user has control over camera and zoom
+let mostMassiveObjectID = 0;
+let mostMass = 0;
+
+function setup()
+{
   createCanvas(windowWidth, windowHeight);
-  newMassiveObject(5, [500, 200], createVector(0, 1), true, true, 500);
-  newMassiveObject(20, [700, 300], createVector(0, 0), true, true, 500);
-}
-
-function draw() {
-  background(0);
-  cameraControls();
-  for(let i = 0; i < massiveObjects.length; i++){
-    massiveObjects[i].updateSelf();
+  trailLength = createSlider(0, 200, 10);
+  trailLength.position(width - 150, 50);
+  //newMassiveObject(5, [500, 200], createVector(0, 1), true, true, 500);
+  //newMassiveObject(20, [700, 300], createVector(0, 0), true, true, 500);
+  for (let i = 0; i < 100; i++)
+  {
+    //newRandomObject();
   }
 }
 
-function newMassiveObject(mass, startPosition, initialForceVector, drawPlanet, drawTail, trailLength){
+function draw()
+{
+  background(0);
+  cameraControls();
+  drawGrid();
+  for (let i = 0; i < massiveObjects.length; i++)
+  {
+    massiveObjects[i].updateSelf();
+  }
+  mouseScrolled = 0;
+  if (mouseIsPressed) { planetScale += 1 / cameraScale; ellipse(mouseX, mouseY, planetScale * cameraScale) }
+  else planetScale = 0;
+  fill(255);
+  stroke(0);
+  strokeWeight(1);
+  text(frameRate(), 100, 100);
+}
+
+function drawGrid()
+{
+  stroke(200, 200, 200, 100);
+  strokeWeight(1);
+  push();
+  let gridScale = 150 * cameraScale;
+  for (let x = 0; x < width; x += gridScale)
+  {
+    line((cameraX % gridScale) + x, 0, (cameraX % gridScale) + x, height);
+  }
+  for (let y = 0; y < height; y += gridScale)
+  {
+    line(0, (cameraY % gridScale) + y, width, (cameraY % gridScale) + y);
+  }
+  pop();
+}
+
+function newRandomObject()
+{
+  newMassiveObject(random(10, 50), [800 + random(-1, 1), 500], createVector(random(-5, 5), random(-5, 5)), true, true, trailLength.value())
+}
+
+function newMassiveObject(mass, startPosition, initialForceVector, drawPlanet, drawTail, trailLength)
+{
   // define the new object
   let nmo = new massiveObject(mass, startPosition, initialForceVector, drawPlanet, drawTail, trailLength);
   // push the the array
   massiveObjects.push(nmo);
+  if (mass > mostMass) { console.log(mostMassiveObjectID); mostMassiveObjectID = objID - 1; mostMass = mass }
   return nmo;
 }
 
-class massiveObject {
-  constructor(mass, startPosition, initialForceVector, drawPlanet, drawTail, trailLength){
+class massiveObject
+{
+  constructor(mass, startPosition, initialForceVector, drawPlanet, drawTail, trailLength)
+  {
     // mass
     this.mass = mass;
 
@@ -55,70 +108,70 @@ class massiveObject {
 
     // id system
     this.objID = objID;
-    objID ++;
+    objID++;
   }
-  updateSelf(){
+  updateSelf()
+  {
     this.drawSelf();
     this.updateTrail();
     this.doPhysics();
   }
-  drawSelf(){
-    // draw the planet itself
-    strokeWeight(1);
-    stroke(0);
-    if(this.drawPlanet==true){let pos1 = adjustForCamera(this.x, this.y); ellipse(pos1[0], pos1[1], this.mass);}
-
+  drawSelf()
+  {
     // draw the trail
-    if(this.drawTrail==true){
+    if (this.drawTrail == true)
+    {
 
       // itterate over the trail positions
-      for(let i = 0; i < this.trailPositions.length-1; i++){
+      for (let i = 0; i < this.trailPositions.length - 1; i++)
+      {
 
         // stroke and strokeWeight go from a max to a min depending on how far into the array it is
-        stroke(map(i/this.trailPositions.length, 0, this.trailPositions.length, 0, 255) * this.trailPositions.length);
-        strokeWeight(map(this.trailPositions.length-i, 0, this.trailPositions.length, 0, 10));
+        stroke(map(i / this.trailPositions.length, 0, this.trailPositions.length, 0, 255) * this.trailPositions.length);
+        strokeWeight(map(this.trailPositions.length - i, 0, this.trailPositions.length, 0, 10) * cameraScale);
 
         // adjust the positions for the camera
         let pos2 = adjustForCamera(this.trailPositions[i].x, this.trailPositions[i].y);
-        let pos3 = adjustForCamera(this.trailPositions[i+1].x, this.trailPositions[i+1].y);
+        let pos3 = adjustForCamera(this.trailPositions[i + 1].x, this.trailPositions[i + 1].y);
 
         // line between two positions
         line(pos2[0], pos2[1], pos3[0], pos3[1]);
       }
     }
 
-    // highlight itself
-    if(collc(this.x, this.y, 1, 1, mouseX, mouseY, 10, 10, this.mass + 20, this.mass = 20)){
-      noFill();
-      stroke(255);
-      rect(this.x - this.mass/2, this.y - this.mass/2, this.mass, this.mass)
-      this.drawDebug();
-      fill(255);
-    }
+    // draw the planet itself
+    strokeWeight(1);
+    stroke(0);
+    if (this.drawPlanet == true) { let pos1 = adjustForCamera(this.x, this.y); ellipse(pos1[0], pos1[1], this.mass * cameraScale); }
   }
-  updateTrail(){
+  updateTrail()
+  {
     // update the new position
+    this.trailLength = trailLength.value();
     this.trailPositions.push(createVector(this.x, this.y));
 
     // if there are too many saved positions, 
-    if(this.trailPositions.length > this.trailLength) this.trailPositions.shift();
+    while (this.trailPositions.length > this.trailLength) this.trailPositions.shift();
   }
-  doPhysics(){
+  doPhysics()
+  {
     let endXForce = 0;
     let endYForce = 0;
 
-    for(let i = 0; i < massiveObjects.length; i++){
+    for (let i = 0; i < massiveObjects.length; i++)
+    {
       let m1 = massiveObjects[i];
-      if(m1.objID != this.objID){
-        let d1=dist(this.x, this.y, m1.x, m1.y);
+      if (m1.objID != this.objID)
+      {
+        let d1 = dist(this.x, this.y, m1.x, m1.y);
         let a1 = atan2(this.x - m1.x, this.y - m1.y);
-        let forceVec1 = createVector(m1.mass/d1, 0);
-        forceVec1.rotate(-(a1+PI/2));
+        let forceVec1 = createVector(m1.mass / d1, 0);
+        forceVec1.rotate(-(a1 + PI / 2));
 
-        let inertia = m1.mass/this.mass;
+        let inertia = m1.mass / this.mass;
 
-        endXForce += forceVec1.x*inertia/10;
-        endYForce += forceVec1.y*inertia/10;
+        endXForce += forceVec1.x * inertia / 10;
+        endYForce += forceVec1.y * inertia / 10;
       }
     }
 
@@ -128,7 +181,8 @@ class massiveObject {
     this.x += this.currentForceVector.x;
     this.y += this.currentForceVector.y;
   }
-  drawDebug(){
+  drawDebug()
+  {
 
   }
 }
@@ -161,51 +215,86 @@ function collc(x, y, w, h, x2, y2, w2, h2, bx, by)
   return false;
 }
 
-function cameraControls(){
-	// up/down/left/right movement
-	let movingX = 0;
-	let movingY = 0;
+function cameraControls()
+{
+  // up/down/left/right movement
+  if (moveMode == "SelfMove")
+  {
+    let movingX = 0;
+    let movingY = 0;
 
-	if (keyIsDown(87)) { cameraY += cameraMoveSped / cameraScale; movingY = 1; } else
-	if (keyIsDown(83)) { cameraY -= cameraMoveSped / cameraScale; movingY = -1; }
-	if (keyIsDown(68)) { cameraX -= cameraMoveSped / cameraScale; movingX = -1; } else
-	if (keyIsDown(65)) { cameraX += cameraMoveSped / cameraScale; movingX = 1; }
-	
-	if(keyIsDown(82)) cameraMoveSped = 2;
-	else cameraMoveSped = 1;
+    if (keyIsDown(87)) { cameraY += cameraMoveSped / cameraScale; movingY = 1; } else
+      if (keyIsDown(83)) { cameraY -= cameraMoveSped / cameraScale; movingY = -1; }
+    if (keyIsDown(68)) { cameraX -= cameraMoveSped / cameraScale; movingX = -1; } else
+      if (keyIsDown(65)) { cameraX += cameraMoveSped / cameraScale; movingX = 1; }
 
-	// moving diagonal moves at the same overall speed, not double the speed as it would be otherwise
-	if(movingX != false && movingY != false){ cameraX -= cameraMoveSped*0.1 * movingX; cameraY -= cameraMoveSped*0.1 * movingY}
-	// / cameraScale makes the relative speed the same as it gets larger and smaller
-	if(keyIsDown(38)) cameraScale += round(10 * (0.5*cameraScale)) / 100; else
-	if(keyIsDown(40)) cameraScale -= round(10 * (0.5*cameraScale)) / 100;
+    if (keyIsDown(82)) cameraMoveSped = 6;
+    else cameraMoveSped = 3;
 
-	// mouse scrolling for scale
-	cameraScale -= mouseScrolled / 500;
-	// constrain the cameraScale to a reasonable amount
-	cameraScale = constrain(cameraScale, 0.1, 3);
-	cameraScale = round(cameraScale * 100) / 100;
+    // moving diagonal moves at the same overall speed, not double the speed as it would be otherwise
+    if (movingX != false && movingY != false) { cameraX -= cameraMoveSped * 0.1 * movingX; cameraY -= cameraMoveSped * 0.1 * movingY }
+    // / cameraScale makes the relative speed the same as it gets larger and smaller
+    if (keyIsDown(38)) cameraScale += round(10 * (0.5 * cameraScale)) / 100; else
+      if (keyIsDown(40)) cameraScale -= round(10 * (0.5 * cameraScale)) / 100;
+  } else if (massiveObjects[mostMassiveObjectID] != undefined)
+  {
+    cameraX = -massiveObjects[mostMassiveObjectID].x + width / 2;
+    cameraY = -massiveObjects[mostMassiveObjectID].y + height / 2;
+  }
+  // mouse scrolling for scale
+  cameraScale -= mouseScrolled / 800;
+  // constrain the cameraScale to a reasonable amount
+  cameraScale = constrain(cameraScale, 0.1, 3);
+  cameraScale = round(cameraScale * 100) / 100;
 }
 
-function adjustForCamera(x, y){	
-	// adjust by camera position
-	x += cameraX;
-	y += cameraY;
+function adjustForCamera(x, y)
+{
+  // adjust by camera position
+  x += cameraX;
+  y += cameraY;
 
-	// adjust the position for the scale arround the center point
-	// tDist gets the "true distance" or simply includes negative signs
-	// if X is greater than X2
-	let c1 = cameraScale-1;
+  // adjust the position for the scale arround the center point
+  // tDist gets the "true distance" or simply includes negative signs
+  // if X is greater than X2
+  let c1 = cameraScale - 1;
 
-	x += (c1*(tDist(x,width/2)));
-	y += (c1*(tDist(y,height/2)));
+  x += (c1 * (tDist(x, width / 2)));
+  y += (c1 * (tDist(y, height / 2)));
 
-	// return the position
-	return [x, y];
+  // return the position
+  return [x, y];
 }
 
-function tDist(x, x2){
-	//if(x + x2 == undefined) console.log("ERROR: X and or X2 left undefined in tDist")
-	if(x < x2) return -dist(x, 0, x2, 0); 
-	else return dist(x, 0, x2, 0);
+function tDist(x, x2)
+{
+  //if(x + x2 == undefined) console.log("ERROR: X and or X2 left undefined in tDist")
+  if (x < x2) return -dist(x, 0, x2, 0);
+  else return dist(x, 0, x2, 0);
+}
+
+function mouseWheel(event)
+{
+  mouseScrolled = event.delta;
+}
+
+function deAdjustForCamera(x, y)
+{
+  x -= cameraX;
+  y -= cameraY;
+  return [x, y];
+}
+
+function mouseReleased()
+{
+  if (planetScale > 0)
+  {
+    let pos1 = deAdjustForCamera(mouseX, mouseY)
+    newMassiveObject(planetScale, [pos1[0], pos1[1]], createVector(1, 0), true, true, 100);
+  }
+}
+
+function keyPressed()
+{
+  if (keyCode === 81) cameraScale = 1;
 }
