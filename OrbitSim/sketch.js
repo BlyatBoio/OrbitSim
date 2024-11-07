@@ -5,7 +5,7 @@ let objID = 0;
 let cameraX = 0;
 let cameraY = 0;
 let cameraScale = 1;
-let cameraMoveSped = 1;
+let cameraMoveSpeed = 1;
 let mouseScrolled = 0;
 
 // global vars
@@ -17,10 +17,12 @@ let moveMode = "FocusBigGuy";
 let mostMassiveObjectID = 0;
 let mostMass = 0;
 
+let doPlaceObjects = true;
+
 function setup()
 {
   createCanvas(windowWidth, windowHeight);
-  trailLength = createSlider(0, 200, 10);
+  trailLength = createSlider(0, 200, 100);
   trailLength.position(width - 150, 50);
   //newMassiveObject(5, [500, 200], createVector(0, 1), true, true, 500);
   //newMassiveObject(20, [700, 300], createVector(0, 0), true, true, 500);
@@ -37,15 +39,36 @@ function draw()
   drawGrid();
   for (let i = 0; i < massiveObjects.length; i++)
   {
+   massiveObjects[i].drawSelf(true);
+  }
+  for (let i = 0; i < massiveObjects.length; i++)
+  {
     massiveObjects[i].updateSelf();
   }
+  
   mouseScrolled = 0;
   if (mouseIsPressed) { planetScale += 1 / cameraScale; ellipse(mouseX, mouseY, planetScale * cameraScale) }
   else planetScale = 0;
+
+  let p1 = deAdjustForCamera(mouseX, mouseY);
+  p1 = adjustForCamera(p1[0], p1[1]);
+  noFill();
+  stroke(255);
+  ellipse(p1[0], p1[1], 50);
+  fill(255);
+  stroke(0);
+}
+
+function UI(){
   fill(255);
   stroke(0);
   strokeWeight(1);
-  text(frameRate(), 100, 100);
+  text(round(frameRate()), width - 200, 100);
+  switch(moveMode){
+    case "FocusBigGuy":
+      text("Focusing On Object ID: " + mostMassiveObjectID, width/2 - 200, 200);
+      break;
+  }
 }
 
 function drawGrid()
@@ -116,10 +139,11 @@ class massiveObject
     this.updateTrail();
     this.doPhysics();
   }
-  drawSelf()
+  drawSelf(trail)
   {
+    // trail is just a bool to determine whether or not the trail is drawn in order to have them drawn below the planets
     // draw the trail
-    if (this.drawTrail == true)
+    if (trail == true&&this.drawTrail == true)
     {
 
       // itterate over the trail positions
@@ -127,8 +151,9 @@ class massiveObject
       {
 
         // stroke and strokeWeight go from a max to a min depending on how far into the array it is
-        stroke(map(i / this.trailPositions.length, 0, this.trailPositions.length, 0, 255) * this.trailPositions.length);
-        strokeWeight(map(this.trailPositions.length - i, 0, this.trailPositions.length, 0, 10) * cameraScale);
+        let c1 = map(i / this.trailPositions.length, 0, this.trailPositions.length, 0, 255) * this.trailPositions.length;
+        stroke(c1);
+        strokeWeight(map(this.trailPositions.length - i, 0, this.trailPositions.length, 0, 20) * cameraScale);
 
         // adjust the positions for the camera
         let pos2 = adjustForCamera(this.trailPositions[i].x, this.trailPositions[i].y);
@@ -142,7 +167,7 @@ class massiveObject
     // draw the planet itself
     strokeWeight(1);
     stroke(0);
-    if (this.drawPlanet == true) { let pos1 = adjustForCamera(this.x, this.y); ellipse(pos1[0], pos1[1], this.mass * cameraScale); }
+    if (this.drawPlanet == true&&trail==undefined) { let pos1 = adjustForCamera(this.x, this.y); ellipse(pos1[0], pos1[1], this.mass * cameraScale); }
   }
   updateTrail()
   {
@@ -173,6 +198,13 @@ class massiveObject
         endXForce += forceVec1.x * inertia / 10;
         endYForce += forceVec1.y * inertia / 10;
       }
+    }
+
+    let pos1 = adjustForCamera(this.x, this.y);
+    
+    if(doPlaceObjects==false&&mouseIsPressed&&collc(pos1[0], pos1[1], mouseX, mouseY, 1, 1, this.mass)){
+      this.endXForce += movedX;
+      this.endXForce += movedY;
     }
 
     this.currentForceVector.x += endXForce;
@@ -233,14 +265,15 @@ function cameraControls()
 
     // moving diagonal moves at the same overall speed, not double the speed as it would be otherwise
     if (movingX != false && movingY != false) { cameraX -= cameraMoveSped * 0.1 * movingX; cameraY -= cameraMoveSped * 0.1 * movingY }
-    // / cameraScale makes the relative speed the same as it gets larger and smaller
-    if (keyIsDown(38)) cameraScale += round(10 * (0.5 * cameraScale)) / 100; else
-      if (keyIsDown(40)) cameraScale -= round(10 * (0.5 * cameraScale)) / 100;
+    // cameraScale makes the relative speed the same as it gets larger and smaller
   } else if (massiveObjects[mostMassiveObjectID] != undefined)
   {
     cameraX = -massiveObjects[mostMassiveObjectID].x + width / 2;
     cameraY = -massiveObjects[mostMassiveObjectID].y + height / 2;
   }
+
+  if (keyIsDown(38)) cameraScale += round(10 * (0.5 * cameraScale)) / 100; else
+  if (keyIsDown(40)) cameraScale -= round(10 * (0.5 * cameraScale)) / 100;
   // mouse scrolling for scale
   cameraScale -= mouseScrolled / 800;
   // constrain the cameraScale to a reasonable amount
@@ -259,8 +292,8 @@ function adjustForCamera(x, y)
   // if X is greater than X2
   let c1 = cameraScale - 1;
 
-  x += (c1 * (tDist(x, width / 2)));
-  y += (c1 * (tDist(y, height / 2)));
+  x += (c1*(tDist(x,width/2)));
+  y += (c1*(tDist(y,height/2)));
 
   // return the position
   return [x, y];
@@ -280,21 +313,36 @@ function mouseWheel(event)
 
 function deAdjustForCamera(x, y)
 {
+  let c1 = cameraScale - 1;
+
+  if(c1!=0){
+    x += tDist(x,width/2)/cameraScale;
+    y += tDist(y,height/2)/cameraScale;
+  } else {
+  }
+
   x -= cameraX;
   y -= cameraY;
+
   return [x, y];
 }
 
 function mouseReleased()
 {
-  if (planetScale > 0)
+  if (planetScale > 0 && doPlaceObjects == true)
   {
     let pos1 = deAdjustForCamera(mouseX, mouseY)
-    newMassiveObject(planetScale, [pos1[0], pos1[1]], createVector(1, 0), true, true, 100);
+    newMassiveObject(planetScale, [pos1[0], pos1[1]], createVector(0, 0), true, true, 100);
   }
 }
 
 function keyPressed()
 {
+  // reset to default scale
   if (keyCode === 81) cameraScale = 1;
+  // reset button
+  if (keyCode === 67) {massiveObjects = []; mostMass = 0; mostMassiveObjectID = 0;}
+  // swap placing mode
+  if (keyCode === 84) {doPlaceObjects = !doPlaceObjects}
+
 }
