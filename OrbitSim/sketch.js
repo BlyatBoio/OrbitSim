@@ -54,7 +54,7 @@ function setup()
   trailLength.position(width - 150, 150);
   gravityMultSlider = createSlider(1, 10, 1);
   gravityMultSlider.position(width - 150, 250);
-  buttonHighlight  = createImage(100, 100);
+  buttonHighlight = createImage(100, 100);
   gravityOnButton = newButton(width - 215, 175, 200, 50, "Gravity On", "", true, true);
   clearButton = newButton(width - 215, 275, 200, 50, "Clear All Objects", "", true, true);
   timeStopButton = newButton(width - 215, 350, 200, 50, "Pause / Unpause", "", true, true);
@@ -78,64 +78,70 @@ function draw()
   trailSections = 0;
   background(0);
   cameraControls();
-  if(doDrawGrid == true) drawGrid();
+  if (doDrawGrid == true) drawGrid();
 
   // draw trails the (true) determines if trails are drawn or not, just to make sure they are the bottom layer
   for (let i = 0; i < massiveObjects.length; i++)
   {
-   massiveObjects[i].drawSelf(true);
-   if(massiveObjects[mostMassiveObjectID] == undefined) mostMassiveObjectID = round(random(-1, massiveObjects.length));
+    massiveObjects[i].drawSelf(true);
+    if (massiveObjects[mostMassiveObjectID] == undefined) mostMassiveObjectID = round(random(-1, massiveObjects.length));
   }
 
   // draw the actual objects
   for (let i = 0; i < massiveObjects.length; i++)
   {
-    if(runPhysics == true) massiveObjects[i].updateSelf();
+    if (runPhysics == true) massiveObjects[i].updateSelf();
     else massiveObjects[i].drawSelf();
   }
 
   // draw particles and do their physics
   noStroke();
-  for(let i = 0; i < parts.length; i++){
+  for (let i = 0; i < parts.length; i++)
+  {
     parts[i].view();
   }
 
   mouseScrolled = 0;
 
   // draw UI
-  if(UION == true) {
+  if (UION == true)
+  {
     UI();
     gravityMultSlider.show();
     trailLength.show();
   }
-  else {
+  else
+  {
     gravityMultSlider.hide();
     trailLength.hide();
   }
 
-  if(mouseIsPressed == false) buttonPressed = false;
+  if (mouseIsPressed == false) buttonPressed = false;
 
-  if(lastFrameObjLength != massiveObjects.length) resetObjID();
+  if (lastFrameObjLength != massiveObjects.length) resetObjID();
 }
 
-function UI(){
+function UI()
+{
   // cursor and growing circle to indicate planet size
-  fill(255);
-  if (mouseIsPressed&&doPlaceObjects==true) { planetScale += 1 / cameraScale; ellipse(mouseX, mouseY, planetScale * cameraScale) }
-  else planetScale = 0;
 
-  if(doPlaceObjects == true){
-    let p1 = deAdjustForCamera(mouseX, mouseY);
-    p1 = adjustForCamera(p1[0], p1[1]);
+  if (doPlaceObjects == true)
+  {  
+    fill(255);
+
+    let p0 = deAdjustForCamera(mouseX, mouseY);
+    let p1 = adjustForCamera(p0[0], p0[1]);
+    if (mouseIsPressed) { planetScale += 1 / cameraScale; ellipse(p1[0], p1[1], planetScale * cameraScale) }
+    else planetScale = 0;
     noFill();
     stroke(255);
-    ellipse(p1[0], p1[1], 50);
+    ellipse(p1[0], p1[1], (planetScale*cameraScale) + 10);
     fill(255);
     stroke(0);
   }
 
   // incriment time ellapsed varialbe
-  if(runPhysics == true) timeElapsed++;
+  if (runPhysics == true) timeElapsed++;
 
   // formatting
   fill(255);
@@ -148,7 +154,8 @@ function UI(){
   text("Frame Rate:" + round(frameRate()), width - 120, 30);
 
   // camera info
-  switch(moveMode){
+  switch (moveMode)
+  {
     case "FocusBigGuy":
       text("Focusing On Object ID: " + mostMassiveObjectID, width - 175, 80);
       break;
@@ -164,7 +171,7 @@ function UI(){
   // title type thing
   textAlign(CENTER);
   textSize(30)
-  text("Time Elapsed:" + floor(timeElapsed/60), width/2, 30);
+  text("Time Elapsed:" + floor(timeElapsed / 60) + "\nScale: " + cameraScale, width / 2, 30);
   textAlign(LEFT);
   // draw buttons
   gravityOnButton.drawSelf();
@@ -178,19 +185,21 @@ function UI(){
   collisionButton.drawSelf();
 
   // button functionality
-  if(gravityOnButton.isPressed() == true) {gravityOn = !gravityOn;}
-  if(clearButton.isPressed() == true) {massiveObjects = []; mostMass = 0; mostMassiveObjectID = 0; objID = 0}
-  if(timeStopButton.isPressed() == true) {runPhysics = !runPhysics}
-  if(placeObjectsButton.isPressed() == true) {doPlaceObjects = !doPlaceObjects}
-  if(drawVectorsButton.isPressed() == true) {drawVectors = !drawVectors}
-  if(doDrawGridButton.isPressed() == true) {doDrawGrid = !doDrawGrid}
-  if(spawnRandomButton.isPressed() == true) {
-    for(let i = 0; i < 10; i++){
+  if (gravityOnButton.isPressed() == true) { gravityOn = !gravityOn; }
+  if (clearButton.isPressed() == true) { massiveObjects = []; mostMass = 0; mostMassiveObjectID = 0; objID = 0 }
+  if (timeStopButton.isPressed() == true) { runPhysics = !runPhysics }
+  if (placeObjectsButton.isPressed() == true) { doPlaceObjects = !doPlaceObjects }
+  if (drawVectorsButton.isPressed() == true) { drawVectors = !drawVectors }
+  if (doDrawGridButton.isPressed() == true) { doDrawGrid = !doDrawGrid }
+  if (spawnRandomButton.isPressed() == true)
+  {
+    for (let i = 0; i < 10; i++)
+    {
       newRandomObject();
     }
   }
-  if(drawDebugButton.isPressed() == true) {doDrawDebug = !doDrawDebug}
-  if(collisionButton.isPressed() == true) {doCollisions = !doCollisions}
+  if (drawDebugButton.isPressed() == true) { doDrawDebug = !doDrawDebug }
+  if (collisionButton.isPressed() == true) { doCollisions = !doCollisions }
 }
 
 function drawGrid() 
@@ -212,10 +221,10 @@ function drawGrid()
 
 function newRandomObject()
 {
-  newMassiveObject(random(10, 50), [-cameraX+random(0, width), -cameraY+ random(0, height)], createVector(random(-5, 5), random(-5, 5)), true, true, trailLength.value())
+  newMassiveObject(random(10, 50), [-cameraX + random(0, width), -cameraY + random(0, height)], createVector(random(-5, 5), random(-5, 5)), true, true, trailLength.value())
 }
 
-function newMassiveObject(mass, startPosition, initialForceVector, drawPlanet, drawTail, trailLength)
+function newMassiveObject(mass, startPosition, initialForceVector, drawPlanet, drawTail, trailLength) 
 {
   // define the new object
   let nmo = new massiveObject(mass, startPosition, initialForceVector, drawPlanet, drawTail, trailLength);
@@ -225,7 +234,8 @@ function newMassiveObject(mass, startPosition, initialForceVector, drawPlanet, d
   return nmo;
 }
 
-function newParticle(x, y, xSpeed, ySpeed, w, h, red1, green1, blue1, fadeRed, fadeGreen, fadeBlue, Lifespan, scaleX, scaleY){
+function newParticle(x, y, xSpeed, ySpeed, w, h, red1, green1, blue1, fadeRed, fadeGreen, fadeBlue, Lifespan, scaleX, scaleY)
+{
   parts.push(new particle(x, y, xSpeed, ySpeed, 1, w, h, pid, 0, 0, red1, green1, blue1, fadeRed, fadeGreen, fadeBlue, Lifespan, scaleX, scaleY));
 }
 
@@ -266,7 +276,8 @@ class massiveObject
   }
   updateSelf()
   {
-    if(doCollisions == true && this.colided == true){
+    if (doCollisions == true && this.colided == true)
+    {
       this.colide();
     }
     this.drawSelf();
@@ -277,7 +288,7 @@ class massiveObject
   {
     // trail is just a bool to determine whether or not the trail is drawn in order to have them drawn below the planets
     // draw the trail
-    if (trail == true&&this.drawTrail == true)
+    if (trail == true && this.drawTrail == true)
     {
 
       // itterate over the trail positions
@@ -295,7 +306,8 @@ class massiveObject
         let pos3 = adjustForCamera(this.trailPositions[i + 1].x, this.trailPositions[i + 1].y);
 
         // line between two positions
-        if(pos2[0]>0&&pos2[0]<width&&pos2[1]>0&&pos2[1]<height&&pos3[0]>0&&pos3[0]<width&&pos3[1]>0&&pos3[1]<height){
+        if (pos2[0] > 0 && pos2[0] < width && pos2[1] > 0 && pos2[1] < height && pos3[0] > 0 && pos3[0] < width && pos3[1] > 0 && pos3[1] < height)
+        {
           line(pos2[0], pos2[1], pos3[0], pos3[1]);
         }
       }
@@ -303,11 +315,13 @@ class massiveObject
     // draw the planet itself
     strokeWeight(1);
     stroke(0);
+    fill(this.fillColor[0], this.fillColor[1], this.fillColor[2]);
     let pos1 = adjustForCamera(this.x, this.y);
-    if (this.drawPlanet == true&&trail==undefined) {ellipse(pos1[0], pos1[1], this.mass * cameraScale); }
-  
+    if (this.drawPlanet == true && trail == undefined) { ellipse(pos1[0], pos1[1], this.mass * cameraScale); }
+
     // vector drawing
-    if(drawVectors == true && trail == undefined){
+    if (drawVectors == true && trail == undefined)
+    {
       let pos5 = adjustForCamera(this.x + this.currentForceVector.x * 20, this.y);
       let pos6 = adjustForCamera(this.x, this.y + this.currentForceVector.y * 20);
       strokeWeight(6);
@@ -319,7 +333,7 @@ class massiveObject
       line(pos1[0], pos1[1], pos5[0], pos5[1]);
       line(pos1[0], pos1[1], pos6[0], pos6[1]);
     }
-    if(doDrawDebug == true) this.drawDebug();
+    if (doDrawDebug == true) this.drawDebug();
   }
   updateTrail()
   {
@@ -356,18 +370,20 @@ class massiveObject
 
         // defined the force vector
         let forceVec1 = createVector(m1.mass / d1, 0);
-        
+
         // rotate the vector
-        forceVec1.rotate(a1+PI);
+        forceVec1.rotate(a1 + PI);
 
         let inertia = m1.mass / this.mass;
 
-        if(d1 < this.mass/2 + m1.mass/2 && this.mass < m1.mass) {
+        if (d1 < this.mass / 2 + m1.mass / 2 && this.mass < m1.mass)
+        {
           this.colided = true;
           hasColided = true;
-          let i1 = m1.mass /2;
-          if(this.mass / m1.mass > 0.7){m1.colided = true}
-          else{
+          let i1 = m1.mass / 2;
+          if (this.mass / m1.mass > 0.7) { m1.colided = true }
+          else
+          {
             m1.currentForceVector.x += this.currentForceVector.x / i1;
             m1.currentForceVector.y += this.currentForceVector.y / i1;
           }
@@ -379,19 +395,20 @@ class massiveObject
         endXForce += forceVec1.x * inertia / 10;
         endYForce += forceVec1.y * inertia / 10;
       }
-  }
-    if(hasColided == false) this.colided = false;
+    }
+    if (hasColided == false) this.colided = false;
 
     let pos1 = adjustForCamera(this.x, this.y);
-    
-    // if it is pressed and you are not placing objects, add the mouse movement
-    let throwForce = 7;
 
-    if(doPlaceObjects==false&&mouseIsPressed&&collc(pos1[0] - this.mass/2, pos1[1] - this.mass/2, this.mass, this.mass, mouseX, mouseY, 1, 1, 30, 30)){
-      this.currentForceVector.x += (movedX*throwForce)/this.mass;
-      this.currentForceVector.y += (movedY*throwForce)/this.mass;
+    // if it is pressed and you are not placing objects, add the mouse movement
+    let throwForce = this.mass/(10/cameraScale);
+
+    if (doPlaceObjects == false && mouseIsPressed && collc(pos1[0] - this.mass / 2, pos1[1] - this.mass / 2, this.mass, this.mass, mouseX, mouseY, 1, 1, 30, 30))
+    {
+      this.currentForceVector.x += (movedX * throwForce) / this.mass;
+      this.currentForceVector.y += (movedY * throwForce) / this.mass;
       fill(100, 100, 100);
-      circle(pos1[0], pos1[1], this.mass*cameraScale);
+      circle(pos1[0], pos1[1], this.mass * cameraScale);
     }
 
     // apply the gravity multipler value
@@ -412,60 +429,32 @@ class massiveObject
     textAlign(CENTER);
     fill(230);
     stroke(0);
-    text("Mass: "+round(this.mass), pos1[0], pos1[1] - this.mass/2 - 50);
-    text("ID: " + this.objID, pos1[0], pos1[1] - this.mass/2 - 30);
-    text("Position: ("+round(this.x)+", "+round(this.y)+")", pos1[0], pos1[1] - this.mass/2 - 10);
-    text("Total Velocity:" +(round(abs(this.currentForceVector.x))+round(abs(this.currentForceVector.y))), pos1[0], pos1[1] - this.mass/2 - 70);
+    text("Mass: " + round(this.mass), pos1[0], pos1[1] - (this.mass*cameraScale) / 2 - 50);
+    text("ID: " + this.objID, pos1[0], pos1[1] - (this.mass*cameraScale) / 2 - 30);
+    text("Position: (" + round(this.x) + ", " + round(this.y) + ")", pos1[0], pos1[1] - (this.mass*cameraScale) / 2 - 10);
+    text("Total Velocity:" + (round(abs(this.currentForceVector.x)) + round(abs(this.currentForceVector.y))), pos1[0], pos1[1] - (this.mass*cameraScale) / 2 - 70);
   }
-  mapOrbit(objectID){
-    if(objectID == undefined) objectID = mostMassiveObjectID;
+  mapOrbit(objectID)
+  {
+    if (objectID == undefined) objectID = mostMassiveObjectID;
 
     this.mapXs.push(tDist(this.x, massiveObjects[objectID].x));
     this.mapYs.push(tDist(this.y, massiveObjects[objectID].y));
   }
-  colide(){
-    // rotate vector helps apply an even spread of direction to the particles
-    let pos1 = createVector(this.x, this.y);
-    let rotateVector = createVector(1, 0);
-
-    // base particles
+  colide()
+  {
     for(let i = 0; i < this.mass * 3; i++){
-      // rotate the vector 360 degrees or 2 PI radians by the end of the for loop
-      rotateVector.rotate(TWO_PI/(this.mass*3));
+      let newV = createVector(0, random(0, this.mass));
+      newV.rotate(random(0, TWO_PI));
 
-      // define a new vector with a different multiplier applied
-      let mv1 = createVector(rotateVector.x * random(0, this.mass/10), rotateVector.y * random(0, this.mass/10));
+      let speedV = createVector(0, random(0, this.mass/8));
+      speedV.rotate(random(0, TWO_PI));
 
-      mv1.x += this.currentForceVector.x;
-      mv1.y += this.currentForceVector.y;
+      let size = random(this.mass/10, this.mass/5)
 
-      // simpler refference to the size also to make width and height regulated
-      let size1 = random(5, 25);
-
-      // spawn the particle
-      newParticle(pos1.x + random(-this.mass, this.mass), pos1.y+ random(-this.mass, this.mass), mv1.x, mv1.y, size1, size1, 150, 150, 150, 150, 150, 150, 100, -0.08, -0.08);
+      newParticle(this.x + newV.x, this.y + newV.y, speedV.x, speedV.y, size, size, 100, 100, 100, 0, 0, 0, random(50, 250), -0.05, -0.05);
+      newParticle(this.x + newV.y, this.y + newV.x, speedV.x, speedV.y, size, size, 170, 20, 20, 250, 250, 0, random(50, 250), -0.05, -0.05);
     }
-
-    // fire particles
-    rotateVector = createVector(1, 0);
-    for(let i = 0; i < this.mass * 10; i++){
-      // rotate the vector 360 degrees or 2 PI radians by the end of the for loop
-      rotateVector.rotate(TWO_PI/(this.mass*10));
-
-      // define a new vector with a different multiplier applied
-      let mv1 = createVector(rotateVector.x * random(0, this.mass/5), rotateVector.y * random(0, this.mass/5));
-
-      mv1.x += this.currentForceVector.x;
-      mv1.y += this.currentForceVector.y;
-
-      // simpler refference to the size also to make width and height regulated
-      let size1 = random(5, 15);
-
-      // spawn the particle
-      newParticle(pos1.x+ random(-this.mass, this.mass), pos1.y+ random(-this.mass, this.mass), mv1.x, mv1.y, size1, size1, 230, 50, 50, 255, 200, 50, 100, -0.08, -0.08);
-    }
-    
-    // delete the current object
     massiveObjects = del(massiveObjects, this.objID);
     objID --;
     resetObjID();
@@ -537,29 +526,28 @@ function cameraControls()
 function adjustForCamera(x, y, returnVector)
 {
   // adjust by camera position
+
   x += cameraX;
   y += cameraY;
 
   // adjust the position for the scale arround the center point
   // tDist gets the "true distance" or simply includes negative signs
   // if X is greater than X2
-  let c1 = cameraScale - 1;
+  let c1 = cameraScale-1
 
-  x += (c1*(tDist(x,width/2)));
-  y += (c1*(tDist(y,height/2)));
+  x += c1*tDist(x, width/2);
+  y += c1*tDist(y, height/2);
 
   // if the code requests a vector instead of an array, then it returns a vector.
   let pos = [x, y];
-  if(returnVector == true) pos = createVector(x, y)
+  if (returnVector == true) pos = createVector(x, y);
   // return the position
   return pos;
 }
 
 function tDist(x, x2)
 {
-  //if(x + x2 == undefined) console.log("ERROR: X and or X2 left undefined in tDist")
-  if (x < x2) return -dist(x, 0, x2, 0);
-  else return dist(x, 0, x2, 0);
+  return x-x2
 }
 
 function mouseWheel(event)
@@ -569,14 +557,14 @@ function mouseWheel(event)
 
 function deAdjustForCamera(x, y)
 {
-  let c1 = cameraScale - 1;
 
-  if(c1!=0){
-    x += (tDist(x,width/2)/(cameraScale));
-    y += (tDist(y,height/2)/(cameraScale));
-  } else {
-  }
+  let c1 = cameraScale-1;
 
+  // math derevation of the inverse function wtf math ahhhhhh
+  x = (x + ((c1 * width)/2))/ (c1 + 1); 
+  y = (y + ((c1 * height)/2))/ (c1 + 1);
+
+  // add camnera pos last because it is done first in the origonal function, 
   x -= cameraX;
   y -= cameraY;
 
@@ -587,7 +575,7 @@ function mouseReleased()
 {
   if (planetScale > 0 && doPlaceObjects == true && mouseX < width - 250)
   {
-    let pos1 = deAdjustForCamera(mouseX, mouseY)
+    let pos1 = deAdjustForCamera(mouseX, mouseY);
     newMassiveObject(planetScale, [pos1[0], pos1[1]], createVector(0), true, true, 100);
   }
 }
@@ -597,9 +585,9 @@ function keyPressed()
   // reset to default scale
   if (keyCode === 81) cameraScale = 1;
   // swap placing mode
-  if (keyCode === 84) {doPlaceObjects = !doPlaceObjects}
+  if (keyCode === 84) { doPlaceObjects = !doPlaceObjects }
   // UI on/off
-  if (keyCode === 90) {UION = !UION}
+  if (keyCode === 90) { UION = !UION }
 }
 
 function dropShadowText(txt, x, y, xoffset, yoffset)
@@ -622,105 +610,111 @@ class buttonUI
 {
   constructor(x, y, w, h, text, subtext, doHighlight, doDraw)
   {
-		// position and size
-		this.x = x;
-		this.y = y;
-		this.w = w;
-		this.h = h;
-		// text to draw and text to draw when hovered
-		this.text = text;
-		this.subtext = subtext;
+    // position and size
+    this.x = x;
+    this.y = y;
+    this.w = w;
+    this.h = h;
+    // text to draw and text to draw when hovered
+    this.text = text;
+    this.subtext = subtext;
 
-		// if it highlights when the mouse gets closer
-		this.doHighlight = doHighlight;
+    // if it highlights when the mouse gets closer
+    this.doHighlight = doHighlight;
 
-		// background image handling.
-		this.doDraw = doDraw;
-		// drawing variables
-		if(this.doDraw == undefined) this.doDraw = true;
-	}
+    // background image handling.
+    this.doDraw = doDraw;
+    // drawing variables
+    if (this.doDraw == undefined) this.doDraw = true;
+  }
   drawSelf()
   {
-		// draw the background;
-		if(this.doDraw == true){
-			noStroke();
-			fill(50, 50, 200, 100);
-			rect(this.x, this.y, this.w, this.h);
+    // draw the background;
+    if (this.doDraw == true)
+    {
+      noStroke();
+      fill(50, 50, 200, 100);
+      rect(this.x, this.y, this.w, this.h);
 
-			// draw the text and subtext
-			textAlign(CENTER);
-			textSize(25);
+      // draw the text and subtext
+      textAlign(CENTER);
+      textSize(25);
       let t = this.text
-      if(this.text == "Gravity On")  t += ": " + gravityOn;
-			dropShadowText(t, this.x + this.w / 2, this.y + this.h / 2 + 7, 3, 5);
+      if (this.text == "Gravity On") t += ": " + gravityOn;
+      dropShadowText(t, this.x + this.w / 2, this.y + this.h / 2 + 7, 3, 5);
       textSize(14);
       textAlign(LEFT);
 
-			if (collc(this.x, this.y, this.w, this.h, mouseX, mouseY, 1, 1, 150, 159) == true);
-			{
-				// do highlighting for when mouse gets close
-				if(this.doHighlight == true) this.drawHighlight();
+      if (collc(this.x, this.y, this.w, this.h, mouseX, mouseY, 1, 1, 150, 159) == true);
+      {
+        // do highlighting for when mouse gets close
+        if (this.doHighlight == true) this.drawHighlight();
 
-				if (collc(this.x, this.y, this.w, this.h, mouseX, mouseY, 1, 1))
-				{
-					// draw subtext
-					textSize(15);
-					fill(230);
-					textAlign(CENTER);
+        if (collc(this.x, this.y, this.w, this.h, mouseX, mouseY, 1, 1))
+        {
+          // draw subtext
+          textSize(15);
+          fill(230);
+          textAlign(CENTER);
           let t2 = this.subtext;
-          if(this.text == "Pause / Unpause"){
-            if(runPhysics == true) t2 = "Time Is Unpaused";
+          if (this.text == "Pause / Unpause")
+          {
+            if (runPhysics == true) t2 = "Time Is Unpaused";
             else t2 = "Time Is Paused";
           }
-          if(this.text == "Debug Mode"){
-            if(doDrawDebug == true) t2 = "Debug Mode On";
+          if (this.text == "Debug Mode")
+          {
+            if (doDrawDebug == true) t2 = "Debug Mode On";
             else t2 = "Debug Mode Off";
           }
-					text(t2, this.x + this.w/2, this.y - 2);
-				}
-			}
-		}
-	}
-	isPressed()
-	{
-    if(collc(this.x, this.y, this.w, this.h, mouseX, mouseY, 10, 10) == true && buttonPressed == false && mouseIsPressed && mouseButton == LEFT){
+          text(t2, this.x + this.w / 2, this.y - 2);
+        }
+      }
+    }
+  }
+  isPressed()
+  {
+    if (collc(this.x, this.y, this.w, this.h, mouseX, mouseY, 10, 10) == true && buttonPressed == false && mouseIsPressed && mouseButton == LEFT)
+    {
       buttonPressed = true;
       return true;
     }
     return false;
   }
-	drawHighlight()
-	{
-		// get istance from the mouse to the center of the button
-		let dx = dist(mouseX, 0, this.x + this.w / 2, 0);
-		let dy = dist(mouseY, 0, this.y + this.h / 2, 0);
-		let maxAlpha = 150;
-		// map the distance from the max istance of 300 down to a range of 0 -the max number
-		dx = map(dx, 0, this.w, 0, maxAlpha / 2);
-		dy = map(dy, 0, this.h, 0, maxAlpha / 2);
-		let totalAlpha = maxAlpha - (dx + dy);
+  drawHighlight()
+  {
+    // get istance from the mouse to the center of the button
+    let dx = dist(mouseX, 0, this.x + this.w / 2, 0);
+    let dy = dist(mouseY, 0, this.y + this.h / 2, 0);
+    let maxAlpha = 150;
+    // map the distance from the max istance of 300 down to a range of 0 -the max number
+    dx = map(dx, 0, this.w, 0, maxAlpha / 2);
+    dy = map(dy, 0, this.h, 0, maxAlpha / 2);
+    let totalAlpha = maxAlpha - (dx + dy);
 
-		// load in the pixels to be eddited
-		buttonHighlight.loadPixels();
+    // load in the pixels to be eddited
+    buttonHighlight.loadPixels();
 
-		for (let i = 0; i < buttonHighlight.pixels.length; i += 4)
-		{
-			buttonHighlight.pixels[i] = 150;
-			buttonHighlight.pixels[i + 1] = 150;
-			buttonHighlight.pixels[i + 2] = 150;
-			buttonHighlight.pixels[i + 3] = totalAlpha;
-		}
+    for (let i = 0; i < buttonHighlight.pixels.length; i += 4)
+    {
+      buttonHighlight.pixels[i] = 150;
+      buttonHighlight.pixels[i + 1] = 150;
+      buttonHighlight.pixels[i + 2] = 150;
+      buttonHighlight.pixels[i + 3] = totalAlpha;
+    }
 
-		// update the image
-		buttonHighlight.updatePixels();
+    // update the image
+    buttonHighlight.updatePixels();
 
-		// draw the image
-		image(buttonHighlight, this.x, this.y, this.w, this.h);
-	}
+    // draw the image
+    image(buttonHighlight, this.x, this.y, this.w, this.h);
+  }
 }
 
-class particle{
-  constructor(x, y, xs, ys, s, w, h, id, yg, xg, r, gc, b, fr, fg, fb, ls, scx, scy) {
+class particle
+{
+  constructor(x, y, xs, ys, s, w, h, id, yg, xg, r, gc, b, fr, fg, fb, ls, scx, scy)
+  {
     // X, Y, Xspeed, Yspeed, Shape, Width, Height, ID, Ygravity, Xgravity, Initial red green blue, final red green blue, lifespan, Scale change x, Scale change y
     // Variables for the location and motion of the particle;
     this.x = x;
@@ -745,7 +739,8 @@ class particle{
 
     //Lifespan
     this.ls = ls;
-    if (this.ls < 1) {
+    if (this.ls < 1)
+    {
       this.ls = 1;
     }
     this.lc = 0;
@@ -766,11 +761,13 @@ class particle{
     this.bd = 0;
     this.rd = tDist(this.fr, this.r) / this.ls;
     this.gd = tDist(this.fg, this.gc) / this.ls;
-    this.bd = tDist(this.fb, this.b) / this.ls;    
+    this.bd = tDist(this.fb, this.b) / this.ls;
   }
-  view() {
+  view()
+  {
     // modifying the different variables
-    if(runPhysics == true){
+    if (runPhysics == true)
+    {
       this.w += this.scx;
       this.h += this.scy;
       this.x += this.mv.x;
@@ -785,10 +782,11 @@ class particle{
 
     // drawing the particle to the screen
     let pos1 = adjustForCamera(this.x, this.y, true);
-    let opacity = map(this.lc/this.ls, 0, 1, 255, 0);
+    let opacity = map(this.lc / this.ls, 0, 1, 255, 0);
     fill(this.r, this.gc, this.b, opacity);
-    if (this.s == 1) ellipse(pos1.x, pos1.y, this.w*cameraScale, this.h*cameraScale);
-    else if (this.s == 2) {
+    if (this.s == 1) ellipse(pos1.x, pos1.y, this.w * cameraScale, this.h * cameraScale);
+    else if (this.s == 2)
+    {
       push();
       translate(pos1.x, pos1.y);
       rotate(atan2(this.mv.y, this.mv.x));
@@ -797,7 +795,8 @@ class particle{
     }
 
     // parameters for when the particle will delete itself.
-    if (this.lc > this.ls || this.lc > 500 || opacity <= 50) {
+    if (this.lc > this.ls || this.lc > 500 || opacity <= 50)
+    {
       parts = del(parts, this.id, 180, 1);
       pid -= 1;
     }
@@ -811,29 +810,42 @@ class particle{
   }
 }
 
-function del(a, id){
+function del(a, id)
+{
   // creates an empty array and a duplicate of the input array.
   let array = [];
   let array2 = a;
-    for(let i = 0; i < array2.length; i++){
-      //For the length of the input array, it pushes the values of the input array into the empty array if the current place in the array does not equal the current ID
-      if(i != id){
-      array.push(array2[i]);    
+  for (let i = 0; i < array2.length; i++)
+  {
+    //For the length of the input array, it pushes the values of the input array into the empty array if the current place in the array does not equal the current ID
+    if (i != id)
+    {
+      array.push(array2[i]);
     }
-    if(i > id){
+    if (i > id)
+    {
       //If the id of the object is larger than the deleted id, it decreases it's ID by one
-      if(array[i-1].id == undefined) array[i-1].objID --;
-      else array[i - 1].id --;
+      if (array[i - 1].id == undefined) array[i - 1].objID--;
+      else array[i - 1].id--;
     }
   }
   return array;
 }
 
-function resetObjID(){
-  for(let i = 0; i< massiveObjects.length; i++){
-    if(massiveObjects[i].mass > mostMass){
+function resetObjID()
+{
+  let totalLarger = 0;
+  for (let i = 0; i < massiveObjects.length; i++)
+  {
+    if (massiveObjects[i].mass >= mostMass)
+    {
+      totalLarger ++;
       mostMass = massiveObjects[i].mass;
       mostMassiveObjectID = i;
     }
+  }
+  if(mostMass != 0 && totalLarger == 0){
+    mostMass = 0;
+    resetObjID();
   }
 }
