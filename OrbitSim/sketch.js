@@ -34,7 +34,7 @@ let drawVectorsButton;
 let doDrawGridButton;
 let doDrawGrid = false;
 let timeElapsed = 0;
-let doDrawDebug = true;
+let doDrawDebug = false;
 let drawDebugButton;
 let spawnRandomButton;
 let doCollisions = true;
@@ -50,7 +50,7 @@ let lastFrameObjLength = 0;
 function setup()
 {
   createCanvas(windowWidth, windowHeight);
-  trailLength = createSlider(0, 200, 100);
+  trailLength = createSlider(0, 1000, 100);
   trailLength.position(width - 150, 150);
   gravityMultSlider = createSlider(1, 10, 1);
   gravityMultSlider.position(width - 150, 250);
